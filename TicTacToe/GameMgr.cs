@@ -22,7 +22,7 @@ namespace TicTacToe
         public bool IsGameOver { get { return isGameOver; } }
         Board mainBoard = new Board();
         int recursiveCalls = 0;
-        int maxDepth = 1;
+        int maxDepth = 10;
 
         public GameMgr()
         {
@@ -127,7 +127,7 @@ namespace TicTacToe
 
             if (board.IsGameOver() || depth == 0)
             {
-                return board.Evaluate(Player.Circle, recursiveCalls);
+                return board.Evaluate(Player.Circle, maxDepth - depth);
             }
 
             int bestScore = isMaximizing ? int.MinValue : int.MaxValue;
