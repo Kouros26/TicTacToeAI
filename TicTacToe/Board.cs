@@ -13,6 +13,9 @@ namespace TicTacToe
 		public void SwitchPlayer()
 		{
             currentPlayer = (Player)((int)(currentPlayer + 1) % 3);
+
+            if (currentPlayer == Player.None)
+                currentPlayer++;
         }
 
 		public Board () {}
@@ -151,15 +154,15 @@ namespace TicTacToe
                 nbSquareOpponent++;
         }
 
-        public int Evaluate(Player player)
-		{
+        public int Evaluate(Player player, int depth)
+        {
             int lineScore = 0;
             int score = 0;
             int nbSquarePlayer = 0, nbSquareOpponent = 0;
 
-			// lines
-			for (int i = 0; i < boardSquares.GetLength(0); i++)
-			{
+            // Check for wins
+            for (int i = 0; i < boardSquares.GetLength(0); i++)
+            {
                 nbSquarePlayer = nbSquareOpponent = 0;
                 for (int j = 0; j < boardSquares.GetLength(1); j++)
                 {
@@ -167,14 +170,15 @@ namespace TicTacToe
                     CountSquareOwner(squareValue, player, ref nbSquarePlayer, ref nbSquareOpponent);
                 }
                 lineScore = ComputeScoreForLine(nbSquarePlayer, nbSquareOpponent);
-                // leave in case of game over
-                if (Math.Abs(lineScore) == 100)
-                    return lineScore;
+                if (lineScore == 100)
+                    return lineScore - depth; // Win with fewer moves is better
+                if (lineScore == -100)
+                    return lineScore + depth; // Opponent wins with fewer moves is worse
                 score += lineScore;
-			}
-			// columns
-			for (int i = 0; i < boardSquares.GetLength(1); i++)
-			{
+            }
+
+            for (int i = 0; i < boardSquares.GetLength(1); i++)
+            {
                 nbSquarePlayer = nbSquareOpponent = 0;
                 for (int j = 0; j < boardSquares.GetLength(0); j++)
                 {
@@ -182,12 +186,13 @@ namespace TicTacToe
                     CountSquareOwner(squareValue, player, ref nbSquarePlayer, ref nbSquareOpponent);
                 }
                 lineScore = ComputeScoreForLine(nbSquarePlayer, nbSquareOpponent);
-                // leave in case of game over
-                if (Math.Abs(lineScore) == 100)
-                    return lineScore;
+                if (lineScore == 100)
+                    return lineScore - depth;
+                if (lineScore == -100)
+                    return lineScore + depth;
                 score += lineScore;
             }
-			// diagonals
+
             nbSquarePlayer = nbSquareOpponent = 0;
             for (int i = 0; i < boardSquares.GetLength(0); i++)
             {
@@ -195,9 +200,10 @@ namespace TicTacToe
                 CountSquareOwner(squareValue, player, ref nbSquarePlayer, ref nbSquareOpponent);
             }
             lineScore = ComputeScoreForLine(nbSquarePlayer, nbSquareOpponent);
-            // leave in case of game over
-            if (Math.Abs(lineScore) == 100)
-                return lineScore;
+            if (lineScore == 100)
+                return lineScore - depth;
+            if (lineScore == -100)
+                return lineScore + depth;
             score += lineScore;
 
             nbSquarePlayer = nbSquareOpponent = 0;
@@ -205,23 +211,23 @@ namespace TicTacToe
             {
                 Player squareValue = boardSquares[i, boardSquares.GetLength(1) - 1 - i];
                 CountSquareOwner(squareValue, player, ref nbSquarePlayer, ref nbSquareOpponent);
-
             }
             lineScore = ComputeScoreForLine(nbSquarePlayer, nbSquareOpponent);
-
-            // leave in case of game over
-            if (Math.Abs(lineScore) == 100)
-                return lineScore;
+            if (lineScore == 100)
+                return lineScore - depth;
+            if (lineScore == -100)
+                return lineScore + depth;
             score += lineScore;
 
             return score;
-		}
-
-        public int Evaluate()
-        {
-            int score = Evaluate(currentPlayer);
-            return score;
         }
+
+
+        //public int Evaluate()
+        //{
+        //    int score = Evaluate(currentPlayer);
+        //    return score;
+        //}
 
 		public bool IsGameOver()
 		{

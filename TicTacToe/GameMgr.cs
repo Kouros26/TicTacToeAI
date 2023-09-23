@@ -21,7 +21,8 @@ namespace TicTacToe
         bool isGameOver = false;
         public bool IsGameOver { get { return isGameOver; } }
         Board mainBoard = new Board();
-        Board iaTestBoard = new Board();
+        int recursiveCalls = 0;
+        int maxDepth = 1;
 
         public GameMgr()
         {
@@ -65,7 +66,6 @@ namespace TicTacToe
             }
             else
             {
-                iaTestBoard = mainBoard;
                 ComputeAIMove();
             }
 
@@ -73,7 +73,7 @@ namespace TicTacToe
             {
                 mainBoard.Draw();
                 Console.Write("game over - ");
-                int result = mainBoard.Evaluate(Player.Cross);
+                int result = mainBoard.Evaluate(Player.Cross, 0);
                 if (result == 100)
                     Console.Write("you win\n");
                 else if (result == -100)
@@ -81,19 +81,78 @@ namespace TicTacToe
                 else
                     Console.Write("it's a draw!\n");
 
+                Console.Write("IA Recursive calls this game : " + recursiveCalls);
                 Console.ReadKey();
 
                 return false;
             }
             return true;
         }
-        
+
         // ***** AI : random move
         void ComputeAIMove()
         {
-            List<Move> moves = iaTestBoard.GetAvailableMoves();
+            int bestScore = int.MinValue;
+            Move bestMove = new Move();
 
-            mainBoard.MakeMove(randMove);
+            // Loop through all available moves
+            List<Move> availableMoves = mainBoard.GetAvailableMoves();
+            foreach (Move move in availableMoves)
+            {
+                // Make the move
+                mainBoard.MakeMove(move);
+
+                // Calculate the score for this move
+                int score = MiniMax(mainBoard, maxDepth, false);
+
+                // Undo the move
+                mainBoard.UndoMove(move);
+
+                // If this move has a higher score, update the best move
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    bestMove = move;
+                }
+            }
+
+            // Make the best move
+            mainBoard.MakeMove(bestMove);
+        }
+
+
+        int MiniMax(Board board, int depth, bool isMaximizing)
+        {
+            recursiveCalls++;
+
+            if (board.IsGameOver() || depth == 0)
+            {
+                return board.Evaluate(Player.Circle, recursiveCalls);
+            }
+
+            int bestScore = isMaximizing ? int.MinValue : int.MaxValue;
+            List<Move> availableMoves = board.GetAvailableMoves();
+
+            foreach (Move move in availableMoves)
+            {
+                if (isMaximizing)
+                {
+                    board.MakeMove(move);
+                    int score = MiniMax(board, depth - 1, false);
+                    bestScore = Math.Max(bestScore, score);
+                    board.UndoMove(move);
+                }
+
+                else
+                {
+                    board.MakeMove(move);
+                    int score = MiniMax(board, depth - 1, true);
+                    bestScore = Math.Min(bestScore, score);
+                    board.UndoMove(move);
+                }
+            }
+
+            return bestScore;
         }
     }
 }
