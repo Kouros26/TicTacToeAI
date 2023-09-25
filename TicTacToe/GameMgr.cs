@@ -21,7 +21,8 @@ namespace TicTacToe
         bool isGameOver = false;
         public bool IsGameOver { get { return isGameOver; } }
         Board mainBoard = new Board();
-        int recursiveCalls = 0;
+        public int algorithmUsed = -1;
+        public int recursiveCalls = 0;
         int maxDepth = 30;
 
         public GameMgr()
@@ -75,14 +76,11 @@ namespace TicTacToe
                 Console.Write("game over - ");
                 int result = mainBoard.Evaluate(Player.Cross);
                 if (result == 100)
-                    Console.Write("you win\n");
+                    Console.Write("you win\n\n");
                 else if (result == -100)
-                    Console.Write("you lose\n");
+                    Console.Write("you lose\n\n");
                 else
-                    Console.Write("it's a draw!\n");
-
-                Console.Write("IA Recursive calls this game : " + recursiveCalls);
-                Console.ReadKey();
+                    Console.Write("it's a draw!\n\n");
 
                 return false;
             }
@@ -97,20 +95,30 @@ namespace TicTacToe
             int beta = int.MaxValue;
             Move bestMove = new Move();
 
-            // Loop through all available moves
             List<Move> availableMoves = mainBoard.GetAvailableMoves();
             foreach (Move move in availableMoves)
             {
-                // Make the move
                 mainBoard.MakeMove(move);
 
-                // Calculate the score for this move
-                int score = AlphaBetaPruning(mainBoard, maxDepth, alpha, beta, false);
+                int score = 0;
 
-                // Undo the move
+                switch (algorithmUsed)
+                {
+                    case 0:
+                        score = MiniMax(mainBoard, maxDepth, false);
+                        break;
+
+                    case 1:
+                        score = -NegaMax(mainBoard, maxDepth);
+                        break;
+
+                    case 2:
+                        score = AlphaBetaPruning(mainBoard, maxDepth, alpha, beta, false);
+                        break;
+                }
+
                 mainBoard.UndoMove(move);
 
-                // If this move has a higher score, update the best move
                 if (score > bestScore)
                 {
                     bestScore = score;
@@ -118,7 +126,6 @@ namespace TicTacToe
                 }
             }
 
-            // Make the best move
             mainBoard.MakeMove(bestMove);
         }
 
