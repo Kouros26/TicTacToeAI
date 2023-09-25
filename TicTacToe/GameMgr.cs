@@ -22,7 +22,7 @@ namespace TicTacToe
         public bool IsGameOver { get { return isGameOver; } }
         Board mainBoard = new Board();
         int recursiveCalls = 0;
-        int maxDepth = 10;
+        int maxDepth = 30;
 
         public GameMgr()
         {
@@ -73,7 +73,7 @@ namespace TicTacToe
             {
                 mainBoard.Draw();
                 Console.Write("game over - ");
-                int result = mainBoard.Evaluate(Player.Cross, 0);
+                int result = mainBoard.Evaluate(Player.Cross);
                 if (result == 100)
                     Console.Write("you win\n");
                 else if (result == -100)
@@ -93,6 +93,8 @@ namespace TicTacToe
         void ComputeAIMove()
         {
             int bestScore = int.MinValue;
+            int alpha = int.MinValue;
+            int beta = int.MaxValue;
             Move bestMove = new Move();
 
             // Loop through all available moves
@@ -103,7 +105,7 @@ namespace TicTacToe
                 mainBoard.MakeMove(move);
 
                 // Calculate the score for this move
-                int score = MiniMax(mainBoard, maxDepth, false);
+                int score = AlphaBetaPruning(mainBoard, maxDepth, alpha, beta, false);
 
                 // Undo the move
                 mainBoard.UndoMove(move);
@@ -127,7 +129,7 @@ namespace TicTacToe
 
             if (board.IsGameOver() || depth == 0)
             {
-                return board.Evaluate(Player.Circle, maxDepth - depth);
+                return board.Evaluate(Player.Circle);
             }
 
             int bestScore = isMaximizing ? int.MinValue : int.MaxValue;
@@ -153,6 +155,76 @@ namespace TicTacToe
             }
 
             return bestScore;
+        }
+
+        int NegaMax(Board board, int depth)
+        {
+            recursiveCalls++;
+
+            if (board.IsGameOver() || depth == 0)
+            {
+                return board.Evaluate(Player.Cross);
+            }
+
+            int bestScore = int.MinValue;
+            List<Move> availableMoves = board.GetAvailableMoves();
+
+            foreach (Move move in availableMoves)
+            {
+                board.MakeMove(move);
+                int score = -NegaMax(board, depth - 1);
+                bestScore = Math.Max(bestScore, score);
+                board.UndoMove(move);
+            }
+
+            return bestScore;
+        }
+
+        int AlphaBetaPruning(Board board, int depth, int alpha, int beta, bool isMaximizing)
+        {
+
+            recursiveCalls++;
+
+            if (board.IsGameOver() || depth == 0)
+            {
+                return board.Evaluate(Player.Circle);
+            }
+
+            List<Move> availableMoves = board.GetAvailableMoves();
+
+            if (isMaximizing)
+            {
+                int bestScore = int.MinValue;
+                foreach (Move move in availableMoves)
+                {
+                    board.MakeMove(move);
+                    int score = AlphaBetaPruning(board, depth - 1, alpha, beta, false);
+                    board.UndoMove(move);
+                    bestScore = Math.Max(bestScore, score);
+                    alpha = Math.Max(alpha, score);
+
+                    if (alpha >= beta)
+                        break;
+                }
+                return bestScore;
+            }
+
+            else
+            {
+                int bestScore = int.MaxValue;
+                foreach (Move move in availableMoves)
+                {
+                    board.MakeMove(move);
+                    int score = AlphaBetaPruning(board, depth - 1, alpha, beta, true);
+                    board.UndoMove(move);
+                    bestScore = Math.Min(bestScore, score);
+                    beta = Math.Min(beta, score);
+
+                    if (alpha >= beta)
+                        break;
+                }
+                return bestScore;
+            }
         }
     }
 }
