@@ -220,12 +220,11 @@ namespace TicTacToe
             return score;
         }
 
-
-        //public int Evaluate()
-        //{
-        //    int score = Evaluate(currentPlayer);
-        //    return score;
-        //}
+        public int Evaluate()
+        {
+            int score = Evaluate(currentPlayer);
+            return score;
+        }
 
         public bool IsGameOver()
 		{

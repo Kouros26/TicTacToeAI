@@ -170,7 +170,7 @@ namespace TicTacToe
 
             if (board.IsGameOver() || depth == 0)
             {
-                return board.Evaluate(Player.Cross);
+                return board.Evaluate();
             }
 
             int bestScore = int.MinValue;
